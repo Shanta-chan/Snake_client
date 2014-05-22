@@ -1,10 +1,6 @@
 //
 //  main.cpp
 //  Snake_client
-//
-//  Created by Ringo on 22.05.14.
-//  Copyright (c) 2014 Ringo. All rights reserved.
-//
 
 #include <iostream>
 #include <fstream>
@@ -522,18 +518,19 @@ void DrawScore()
     glPopMatrix();
     sprintf(sScore, "%9d", Score);
     glPushMatrix();
-    glTranslatef(w/(8), h/(1.05), 0);
+    glTranslatef(w/(8.38), h/(1.05), 0);
     glScalef(0.3f, 0.3f, 0.3f);
     draw_string(GLUT_STROKE_ROMAN, sScore);
     glPopMatrix();
+    glColor3f (0.3, 0.3, 1.0);
     glPushMatrix();
-    glTranslatef(w/(3.4), h/(1.05), 0);
+    glTranslatef(w/(1.68), h/(1.05), 0);
     glScalef(0.3f, 0.3f, 0.3f);
     draw_string(GLUT_STROKE_ROMAN, "Player 2:");
     glPopMatrix();
     sprintf(sScore1, "%9d", Score1);
     glPushMatrix();
-    glTranslatef(w/(3), h/(1.05), 0);
+    glTranslatef(w/(1.6), h/(1.05), 0);
     glScalef(0.3f, 0.3f, 0.3f);
     draw_string(GLUT_STROKE_ROMAN, sScore1);
     glPopMatrix();
@@ -545,12 +542,12 @@ void DrawScore()
     inFile.close();
     hightScore = atoi(sHightScore);
     glPushMatrix();
-    glTranslatef(w/(1.6), h/(1.05), 0);
+    glTranslatef(w/(1.0), h/(1.05), 0);
     glScalef(0.3f, 0.3f, 0.3f);
     draw_string(GLUT_STROKE_ROMAN, "Hide score:");
     glPopMatrix();
     glPushMatrix();
-    glTranslatef(w/(1.2), h/(1.05), 0);
+    glTranslatef(w/(1.0), h/(1.05), 0);
     glScalef(0.3f, 0.3f, 0.3f);
     draw_string(GLUT_STROKE_ROMAN, sHightScore);
     glPopMatrix();
@@ -558,6 +555,40 @@ void DrawScore()
     
     glFinish();
     glutSwapBuffers();
+}
+
+void DrawConnect()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_POLYGON);
+    glColor3f (0.0, 0.16, 0.0);
+    glVertex3f (670.0, 80.0, 0.0);
+    glColor3f (0.0, 0.19, 0.0);
+    glVertex3f (580.0, 80.0, 0.0);
+    glColor3f (0.0, 0.16, 0.0);
+    glVertex3f (580.0, 30.0, 0.0);
+    glColor3f (0.0, 0.19, 0.0);
+    glVertex3f (670.0, 30.0, 0.0);
+    glEnd();
+    
+    glLineWidth(5.0f);
+    glColor3f (0.8,0.2,0.0);
+    glPushMatrix();
+    glTranslatef(w/(3.2), h/(2.2), 0);
+    glScalef(0.7f, 0.7f, 0.7f);
+    draw_string(GLUT_STROKE_ROMAN, "Connection..");
+    glPopMatrix();
+    
+    glLineWidth(2.5f);
+    glColor3f (0.0,1.0,1.0);
+    glPushMatrix();
+    glTranslatef(w/(2.07), h/(15.3), 0);
+    glScalef(0.2f, 0.2f, 0.2f);
+    draw_string(GLUT_STROKE_ROMAN, "Stop");
+    glPopMatrix();
+    glFinish();
+    glutSwapBuffers();
+
 }
 
 void display()
@@ -592,6 +623,9 @@ void display()
             break;
         case 4:
             DrawRules();
+            break;
+        case 5:
+            DrawConnect();
             break;
     }
     glFlush();
@@ -664,12 +698,7 @@ void MousePressed(int button, int state, int ax, int ay)
             }
             if(ax > (500.0) && ax < (705.0) && ay > (100.0) && ay < (190.0) )
             {
-                key1 = 1;
-                d = 2;
-                num = 5;
-                Score = 0;
-                Score1 = 0;
-                fjfjfh();
+                key1=5;
                 display();
             }
         }
@@ -699,6 +728,13 @@ void MousePressed(int button, int state, int ax, int ay)
                 DrawMenu();
             }
         }
+        if (key1==5)
+        {
+            if(ax > (580.0) && ax < (670.0) && ay > (660.0) && ay < (690.0) )
+            {
+                exit(0);
+            }
+        }
     }
     glutMouseFunc(MousePressed);
 }
@@ -721,13 +757,76 @@ void timer (int = 0)
         display();
     }
     Tick();
+    if (recvmssg != 0)
+    {
+        // Обработка поворотов
+        recvmssg = 0;
+    }
     glutTimerFunc (80,timer,0);
+}
+void* listen(void *param)
+{
+    while (1)
+    {
+        recv(sock, &recvmssg, sizeof(int), 0);
+    }
+    return 0;
+}
+
+void waiting()
+{
+    bool cantStartGame = false;
+    while (!cantStartGame)
+    {
+        if (recvmssg == 5)
+        {
+            cantStartGame = true;
+        }
+    }
+    // Сцена игры
+    CreateGlutWindow();
+    
+}
+
+void start()
+{
+    struct sockaddr_in addr;
+    
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0)
+    {
+        perror("socket");
+        exit(1);
+    }
+    
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(8081);
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    
+    if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        perror("connect");
+        exit(2);
+    }
+    
+    printf("Connected\n");
+    
+    recv(sock, NULL, sizeof(int), 0);
+    
+    pthread_t pk;
+    
+    pthread_create(&pk, NULL, listen, NULL);
+    
+    void *ret;
+    
+    pthread_join(pk, &ret);
 }
 
 int main (int argc,char **argv)
 {
+    start();
     glutInit (&argc, argv);
-    CreateGlutWindow();
+    //CreateGlutWindow();
     glutDisplayFunc (display);
     glutTimerFunc (80,timer,0);
     glutSpecialFunc (MyKeyboard);
