@@ -741,7 +741,7 @@ void MousePressed(int button, int state, int ax, int ay)
 
 void CreateGlutWindow()
 {
-    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGBA);// Выбор режима:  одиночный буфер и RGBA цвета
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA);// Выбор режима:  одиночный буфер и RGBA цвета
     glutInitWindowSize (w, h);
     glutCreateWindow ("Snake");
     glClearColor(0.0, 0.1, 0.0, 0);
@@ -785,7 +785,8 @@ void waiting()
     }
     // Сцена игры
     CreateGlutWindow();
-    
+    display();
+
 }
 
 void start()
@@ -820,12 +821,15 @@ void start()
     void *ret;
     
     pthread_join(pk, &ret);
+    //waiting();
 }
 
 int main (int argc,char **argv)
 {
-    start();
     glutInit (&argc, argv);
+    start();
+    waiting();
+    
     //CreateGlutWindow();
     glutDisplayFunc (display);
     glutTimerFunc (80,timer,0);
