@@ -331,36 +331,36 @@ void Tick()
         s1[i].x1 = s1[i-1].x1;
         s1[i].y1 = s1[i-1].y1;
     }
-    
+    recv(sock, &dir, sizeof(int), 0);
     //Движение головы змейки:
     switch (dir) {
-        case 0:
+        case 7:
             s[0].y+=1;
-            s1[0].y1+=1;
+            
             break;
         case 1:
             s[0].x-=1;
-            s1[0].x1-=1;
-            break;
-        case 2:
-            s[0].x+=1;
-            s1[0].x1+=1;
+            
             break;
         case 3:
-            s[0].y-=1;
-            s1[0].y1-=1;
-            break;
-        case 4:
+            s[0].x+=1;
             
             break;
         case 5:
+            s[0].y-=1;
             
+            break;
+        case 2:
+            s1[0].x1-=1;
             break;
         case 6:
-            
+            s1[0].x1+=1;
             break;
-        case 7:
-            
+        case 10:
+            s1[0].y1-=1;
+            break;
+        case 14:
+            s1[0].y1+=1;
             break;
     }
     int h=0;
@@ -648,31 +648,23 @@ void MyKeyboard( int key, int a, int b)
 {
     switch (key) {
         case 101:   // вверх
-            dir = 0;
+            dir = 7;
+            send(sock, &dir, sizeof(int), 0);
             break;
         case 102:   // направо
-            dir = 2;
+            dir = 3;
+            send(sock, &dir, sizeof(int), 0);
             break;
         case 100:   // налево
             dir = 1;
+            send(sock, &dir, sizeof(int), 0);
             break;
         case 103:   // вниз
-            dir = 3;
+            dir = 5;
+            send(sock, &dir, sizeof(int), 0);
             break;
         case 27:    // Escape
             exit(0);
-            break;
-        case 87 : // W
-            dir = 4;
-            break;
-        case 65: // A
-            dir = 5;
-            break;
-        case 68: // D
-            dir = 6;
-            break;
-        case 83: // S
-            dir = 7;
             break;
     }
 }
@@ -784,9 +776,7 @@ void waiting()
         }
     }
     // Сцена игры
-    CreateGlutWindow();
     display();
-
 }
 
 void start()
@@ -821,21 +811,20 @@ void start()
     void *ret;
     
     pthread_join(pk, &ret);
-    //waiting();
+    waiting();
 }
+
+
 
 int main (int argc,char **argv)
 {
     glutInit (&argc, argv);
-    start();
-    waiting();
-    
-    //CreateGlutWindow();
+    CreateGlutWindow();
     glutDisplayFunc (display);
     glutTimerFunc (80,timer,0);
     glutSpecialFunc (MyKeyboard);
     glutMouseFunc(MousePressed);
-    
+    start();
     glutMainLoop(); // Запуск механизма обработки событий
     
     return 0;
